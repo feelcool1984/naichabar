@@ -1,8 +1,9 @@
 import requests
 import base64
 import re
+import sys
 
-SOURCE_SUB_URL = "https://express-free.868382.xyz/vgk-kujio/y-jic-yt/uv-yw-ae-p-ws-dc/77f9a9f48b66f63d3376aa60270c650c" # 替换为你的原始订阅链接
+SOURCE_SUB_URL = "https://express-free.868382.xyz/vgk-kujio/y-jic-yt/uv-yw-ae-p-ws-dc/77f9a9f48b66f63d3376aa60270c650c" # 你的订阅链接
 
 def decode_base64(data):
     missing_padding = len(data) % 4
@@ -10,7 +11,7 @@ def decode_base64(data):
         data += '=' * (4 - missing_padding)
     try:
         return base64.b64decode(data).decode('utf-8', errors='ignore')
-    except Exception as e:
+    except Exception:
         return data
 
 def fetch_and_extract_nodes(url):
@@ -34,21 +35,13 @@ def fetch_and_extract_nodes(url):
         return []
 
 def generate_clash_yaml(nodes):
-    """简单的 Clash 配置模板生成逻辑"""
-    # 基础的 Clash 配置头
     yaml_header = """port: 7890
 socks-port: 7891
 allow-lan: false
 mode: rule
 log-level: info
 external-controller: 127.0.0.1:9090
-
-# 节点配置（此处直接导入原始链接节点，若需要完整的解析需使用 pyyaml）
-# 注意：Clash 官方原生格式需要将节点解析为 key-value 字典。
-# 如果直接包含代理节点，标准转换更推荐结合第三方库或将节点节点串写为节点列表。
 """
-    # 这里演示生成包含节点的配置骨架
-    # 在实际使用中，如果只是简单输出，可以直接把节点以文本方式或代理组形式写入
     return yaml_header
 
 def main():
@@ -58,22 +51,22 @@ def main():
         unique_nodes = list(dict.fromkeys(nodes))
         nodes_plain_text = "\n".join(unique_nodes)
         
-        # 1. 生成 Shadowrocket / 通用客户端需要的 sub_base64.txt
+        # 1. 生成 base64 文本
         base64_content = base64.b64encode(nodes_plain_text.encode('utf-8')).decode('utf-8')
         with open("kv4ynTKhcJWXZ3h.txt", "w", encoding="utf-8") as f:
             f.write(base64_content)
         print("已成功生成 kv4ynTKhcJWXZ3h.txt")
 
-        # 2. 生成 Clash 客户端需要的 clash.yaml
-        # 注意：如果原始节点已经是完整的 Clash 配置 YAML，直接写入即可；
-        # 如果是 Base64 节点，建议直接将 YAML 内容覆盖写入 clash.yaml
+        # 2. 生成 clash.yaml
         clash_content = generate_clash_yaml(unique_nodes)
         with open("kv4ynTKhcJWXZ3h.yaml", "w", encoding="utf-8") as f:
             f.write(clash_content)
         print("已成功生成 kv4ynTKhcJWXZ3h.yaml")
         
     else:
-        print("未提取到任何有效节点。")
+        print("错误：未提取到任何有效节点，请检查订阅链接是否可用或已被墙！")
+        # 让脚本抛出非零退出码，阻断后续的 Git 操作
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
