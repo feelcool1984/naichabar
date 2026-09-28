@@ -7,7 +7,7 @@ LOCAL_SUB_FILE = "raw_sub.txt" # 你存放在仓库里的原始订阅文件路�
 
 def main():
     try:
-        # 1. 读取本地的原始订阅/明文节点文件
+        # 1. 读取本地的原始订阅文件
         with open(LOCAL_SUB_FILE, "r", encoding="utf-8") as f:
             raw_content = f.read().strip()
             
@@ -15,28 +15,23 @@ def main():
             print("错误：原始订阅文件内容为空！")
             sys.exit(1)
 
-        # 2. 如果文件是明文节点，将其编码为 Base64（subconverter API 识别 Base64 更稳定）
+        # 2. 判断内容是明文节点还是已经 Base64 编码
         if "://" in raw_content:
+            # 如果是明文节点链接（vless:// 等），将其统一转为 Base64 编码
             sub_base64 = base64.b64encode(raw_content.encode("utf-8")).decode("utf-8")
         else:
+            # 如果本身已经是 Base64 字符串，直接保留
             sub_base64 = raw_content
 
-        # 保存明文/格式化的 TXT 节点订阅
-        # (如果是明文直接写入，如果是 base64 则解码写入)
-        try:
-            plain_nodes = base64.b64decode(sub_base64).decode("utf-8", errors="ignore")
-        except Exception:
-            plain_nodes = raw_content
-
+        # 3. 写入 kv4ynTKhcJWXZ3h.txt （输出标准 Base64 编码格式，不解码为明文）
         with open("kv4ynTKhcJWXZ3h.txt", "w", encoding="utf-8") as f:
-            f.write(plain_nodes)
-        print("已成功更新明文节点文件 kv4ynTKhcJWXZ3h.txt")
+            f.write(sub_base64)
+        print("已成功更新 Base64 订阅文件 kv4ynTKhcJWXZ3h.txt")
 
-        # 3. 将 Base64 内容转化为 data URI 形式，调用 Subconverter API 转成 Clash yaml
+        # 4. 调用 Subconverter API 将该 Base64 节点转换为 Clash YAML
         data_url = f"data:text/plain;base64,{sub_base64}"
         encoded_data_url = urllib.parse.quote(data_url, safe="")
         
-        # 使用公共的 subconverter 转换接口
         api_url = f"https://api.v1.mk/sub?target=clash&url={encoded_data_url}&insert=false"
         
         headers = {
@@ -48,7 +43,7 @@ def main():
         response.raise_for_status()
         clash_yaml = response.text
 
-        # 检查转换出来的 YAML 是否包含代理节点
+        # 检查转换出的 YAML 是否有效
         if "proxies:" in clash_yaml or "proxy-groups:" in clash_yaml:
             with open("kv4ynTKhcJWXZ3h.yaml", "w", encoding="utf-8") as f:
                 f.write(clash_yaml)
