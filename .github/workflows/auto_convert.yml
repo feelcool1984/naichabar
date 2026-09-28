@@ -41,7 +41,11 @@ jobs:
           git add kv4ynTKhcJWXZ3h.yaml kv4ynTKhcJWXZ3h.txt
           if ! git diff --staged --quiet; then
             git commit -m "Auto updated clash.yaml & sub_base64.txt [$(date +'%Y-%m-%d')]"
-            git push
+            
+            # 先拉取远程最新提交，避免 push 冲突
+            git pull --rebase origin main
+            
+            git push origin main
           else
             echo "文件无变化，跳过提交"
           fi
