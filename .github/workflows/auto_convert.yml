@@ -21,10 +21,12 @@ jobs:
       with:
         python-version: '3.10'
 
+    # ---------------- 就在这里修改 ----------------
     - name: 安装依赖
       run: |
         python -m pip install --upgrade pip
-        pip install requests
+        pip install requests pyyaml
+    # ----------------------------------------------
 
     - name: 执行转换脚本
       run: |
@@ -35,12 +37,8 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         
-        # 1. 检查 python 脚本是否成功生成了目标文件，防止报 pathspec error (Exit code 128)
         if [ -f "kv4ynTKhcJWXZ3h.yaml" ] && [ -f "kv4ynTKhcJWXZ3h.txt" ]; then
-          # 2. 暂存生成的节点文件
           git add kv4ynTKhcJWXZ3h.yaml kv4ynTKhcJWXZ3h.txt
-          
-          # 3. 仅在文件有变动时提交并推送
           if ! git diff --staged --quiet; then
             git commit -m "Auto updated clash.yaml & sub_base64.txt [$(date +'%Y-%m-%d')]"
             git push
