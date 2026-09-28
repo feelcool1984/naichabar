@@ -6,20 +6,26 @@ import sys
 SOURCE_SUB_URL = "https://express-free.868382.xyz/vgk-kujio/y-jic-yt/uv-yw-ae-p-ws-dc/77f9a9f48b66f63d3376aa60270c650c" # 你的订阅链接
 
 def decode_base64(data):
+    # 去除可能存在的换行符和空格
+    data = data.strip().replace("\n", "").replace("\r", "")
     missing_padding = len(data) % 4
     if missing_padding:
         data += '=' * (4 - missing_padding)
     try:
         return base64.b64decode(data).decode('utf-8', errors='ignore')
-    except Exception:
+    except Exception as e:
+        print(f"Base64 解码失败，尝试直接使用原文: {e}")
         return data
 
 def fetch_and_extract_nodes(url):
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
     }
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        # verify=False 忽略证书校验，timeout 设置为 20 秒
+        response = requests.get(url, headers=headers, timeout=20, verify=False)
         response.raise_for_status()
         raw_text = response.text.strip()
         
